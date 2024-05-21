@@ -1,0 +1,59 @@
+#include "MyApp.h"
+#include <iostream>
+#include <fcntl.h>
+#include <io.h>
+
+void RedirectIOToConsole()
+{
+    AllocConsole();
+    
+    // Redirect unbuffered STDOUT to the console
+    HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    int hCrt = _open_osfhandle((intptr_t)hConsoleOutput, _O_TEXT);
+    FILE* fp = _fdopen(hCrt, "w");
+    *stdout = *fp;
+    setvbuf(stdout, NULL, _IONBF, 0);
+    
+    // Redirect unbuffered STDERR to the console
+    HANDLE hConsoleError = GetStdHandle(STD_ERROR_HANDLE);
+    hCrt = _open_osfhandle((intptr_t)hConsoleError, _O_TEXT);
+    fp = _fdopen(hCrt, "w");
+    *stderr = *fp;
+    setvbuf(stderr, NULL, _IONBF, 0);
+    
+    // Redirect unbuffered STDIN to the console
+    HANDLE hConsoleInput = GetStdHandle(STD_INPUT_HANDLE);
+    hCrt = _open_osfhandle((intptr_t)hConsoleInput, _O_TEXT);
+    fp = _fdopen(hCrt, "r");
+    *stdin = *fp;
+    setvbuf(stdin, NULL, _IONBF, 0);
+    
+    // Make cout, wcout, cin, wcin, wcerr, cerr, wclog and clog point to console as well
+    std::ios::sync_with_stdio();
+}
+
+BOOL CMyApp::InitInstance()
+{
+    CWinApp::InitInstance();
+
+    // Redirect IO to console
+    RedirectIOToConsole();
+
+    // Your application initialization code
+    CMainFrame* pFrame = new CMainFrame;
+    m_pMainWnd = pFrame;
+    pFrame->LoadFrame(IDR_MAINFRAME);
+    pFrame->ShowWindow(SW_SHOW);
+    pFrame->UpdateWindow();
+
+    // Test output
+    SomeFunction();
+
+    return TRUE;
+}
+
+void CMyApp::SomeFunction()
+{
+    printf("This is a printf statement\n");
+    std::cout << "This is a cout statement" << std::endl;
+}
